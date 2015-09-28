@@ -5,6 +5,14 @@ __pycache__/
 # C extensions
 *.so
 
+# Temporary/ pyc files
+*.py~
+*.pyc
+*.~
+
+#ipynb checkpoints
+.ipynb_checkpoints/
+
 # Distribution / packaging
 .Python
 env/

@@ -19,7 +19,7 @@ IF(Boost_FOUND)
   INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS} ${Python_INCLUDE_DIRS})
   LINK_LIBRARIES(${Boost_LIBRARIES} ${Python_LIBRARIES})
   # Let boost handle from here
-  PYTHON_ADD_MODULE(hello_ext hello_ext.cpp)
+  PYTHON_ADD_MODULE(datamember datamember.cpp)
   
 ELSEIF(NOT Boost_FOUND)
   MESSAGE(FATAL_ERROR "Unable to find correct Boost version. Did you set BOOST_ROOT?")

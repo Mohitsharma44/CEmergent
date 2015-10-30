@@ -3,18 +3,20 @@
 
 ## Install instructions:
 Linux (Ubuntu):
-- **Install BOOST python lib: **`sudo apt-get install libboost-all-dev`
-- **Install CMAKE: **`sudo apt-get install cmake`
+- *Install the Emergent SDK -- only works on Ubuntu 12.04 w/ kernel 3.11.0-24-generic*
+- **Install BOOST python lib: **`sudo apt-get install libboost-all-dev`**
+- **Install CMAKE: **`sudo apt-get install cmake`**
 
 MAC:
-- **Install BOOST python lib: ** `brew install boost`
+- **Install BOOST python lib: ** `brew install boost`**
 
 WINDOWS:
 - *Refer `www.boost.org/doc/libs/1_58_0/more/getting_started/windows.html` *
 
 
 ## Instructions for creating CMakeLists file:
-`(Will be implemented later)`
+`(Will be expanded and implemented later)`
+
 **Example CMakeLists.txt**
 
 ```
@@ -58,14 +60,14 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
 *Instructions for compiling and creating shared object*
 
 ### Development Version:
-- ** sh run.sh **
-- ** Open ipython and import the module **
+- **sh run.sh**
+- **Open ipython and import the module**
 
 ### Final Version
-- **Create cmake (`CMakeLists.txt`) file in the same directory as the cxx code **
-- **create a directory `build` and enter it **
-- **run `cmake ..` **
-- **run `make` **
-- Open ipython and import the module
+- **Create cmake (`CMakeLists.txt`) file in the same directory as the cxx code**
+- **create a directory `build` and enter it**
+- **run `cmake ..`**
+- **run `make`**
+- **Open ipython and import the module**
 
 *Copyright 2015 Mohit Sharma*

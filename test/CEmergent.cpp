@@ -46,7 +46,7 @@ bool camera_info()
 }
 
 
-BOOST_PYTHON_MODULE(devinfo)
+BOOST_PYTHON_MODULE(CEmergent)
 {
   namespace bp=boost::python;
   bp::def("camera_info", camera_info);

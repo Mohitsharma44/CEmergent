@@ -14,6 +14,7 @@ WINDOWS:
 
 
 ## Instructions for creating CMakeLists file:
+`(Will be implemented later)`
 **Example CMakeLists.txt**
 
 ```
@@ -56,6 +57,11 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
 ## Developer Notes:
 *Instructions for compiling and creating shared object*
 
+### Development Version:
+- ** sh run.sh **
+- ** Open ipython and import the module **
+
+### Final Version
 - **Create cmake (`CMakeLists.txt`) file in the same directory as the cxx code **
 - **create a directory `build` and enter it **
 - **run `cmake ..` **

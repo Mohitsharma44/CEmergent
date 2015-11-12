@@ -5,6 +5,7 @@ CC = g++
 
 CFLAGS = -fPIC -c -Wall -m64
 
+CUR_DIR=.
 DIR_OUT=./out
 
 # define any directories containing header files other than /usr/include
@@ -33,5 +34,9 @@ $(DIR_OUT)/%.o:  %.cpp
 $(DIR_OUT)/%.so:  $(DIR_OUT)/%.o
 	$(CC) --shared -Wl,--export-dynamic $< $(LIBS) $(LFLAGS) -o $@
 
+copyfiles:
+	cp $(CUR_DIR)/*.conf $(DIR_OUT)/
+
 clean:
 	$(RM) $(TARGET)
+	$(RM) $(DIR_OUT)/*.conf

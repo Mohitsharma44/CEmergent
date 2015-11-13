@@ -1,4 +1,4 @@
-/* 
+/*
 Author: Mohit Sharma
 Date: Oct 30 2015
 Version: Development
@@ -11,6 +11,7 @@ NYU CUSP 2015
 #include <EvtParamAttribute.h>
 #include <gigevisiondeviceinfo.h>
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <boost/python.hpp>
 #include <vector>
@@ -22,6 +23,7 @@ namespace bp=boost::python;
 
 #define MAX_CAMERAS 10
 #define HELP_FILE "help_file.md"
+#define  _cursor_posn 58
 
 // ANSI escape codes to show colors on terminal
 #define COLOR_RED     "\x1b[31m"
@@ -40,17 +42,17 @@ public:
   CEmergentCamera camera;
   unsigned int count, camera_index;
   string ip, serial, mac, name, subnet, gateway, firmver;
-  // Basically for paramter querries. Restricting the size of
-  // buffer to prevent any bug from crashing the application
 
+  string message;
+  
   int get_camera(unsigned int cam_index = 0)
   {
     unsigned long StringSize = 256;
     unsigned long StringSizeReturn = 0;
     char StringBuffer[StringSize];
     int result;
-    //printf("Camera Index: %u",camera_index);
-    printf("Obtaining Camera \t \t \t \t \t");
+    message = "Obtaining Camera";
+    cout << left << message;
     result = EVT_CameraOpen(&camera, &deviceInfo[cam_index]);
     //printf("%d \n", result);
     // 0 -- Success
@@ -59,8 +61,9 @@ public:
     if (result == 0)
       {
 	name = deviceInfo[cam_index].modelName;
-	printf(COLOR_GREEN "[OK]\n" COLOR_RESET);
-	printf("Camera %s acquired successfully. \n", name.c_str());
+	cout << right << setw(_cursor_posn + 11 - strlen(message.c_str()));
+	cout << COLOR_GREEN "[OK]" COLOR_RESET << endl;
+	cout << left << "Camera" << name.c_str() << "acquired successfully" << endl;
 	serial = deviceInfo[cam_index].serialNumber;
 	mac = deviceInfo[cam_index].macAddress;
 	ip = deviceInfo[cam_index].currentIp;
@@ -77,13 +80,15 @@ public:
       }
     else if (result == 290)
       {
-	printf(COLOR_RED "[FAILED]\n" COLOR_RESET);
-	printf("Camera could not be found.. \n" COLOR_RESET);
+	cout << right << setw(_cursor_posn + 11-strlen(message.c_str()));
+	cout << COLOR_GREEN "[FAILED]" COLOR_RESET << endl;
+	cout << left << "Camera could not be found.. " COLOR_RESET << endl;
       }
     else if (result == 300)
       {
-	printf(COLOR_YELLOW "[WARNING]\n" COLOR_RESET);
-	printf("Camera already acquired. \n" COLOR_RESET);
+	cout << right << setw(_cursor_posn + 11-strlen(message.c_str()));
+	cout << COLOR_GREEN "[WARNING]\n" COLOR_RESET << endl;
+	cout << left << "Camera already acquired." COLOR_RESET << endl;
       }
     return result;
   }
@@ -91,20 +96,23 @@ public:
  
   int release_camera()
   {
+    message = "Releasing Camera";
     int result;
-    printf("Releasing Camera %s \t \t \t \t", name.c_str());
+    cout << left << message << name.c_str();
     result = EVT_CameraClose(&camera);
     //printf("%d \n", result);
     // It is either 0 or non zero.
     if (result != 0)
       {
-	printf(COLOR_RED "[FAILED]\n" COLOR_RESET);
-	printf("Camera %s Locked. Close any process using the camera and try again \n", name.c_str());
+	cout << right << setw(_cursor_posn + 11 - strlen(message.c_str()));
+	cout << COLOR_RED "[FAILED]" COLOR_RESET << endl;
+	cout << left << "Camera" << name.c_str() << "Locked. Close any process using the camera and try again"<< endl;
       }
     else
       {
-	printf(COLOR_GREEN "[OK]\n" COLOR_RESET);
-        printf("%s Camera Released Successfully. \n", name.c_str());
+	cout <<right << setw(_cursor_posn + 11 - strlen(message.c_str()));
+	cout << COLOR_GREEN "[OK]" COLOR_RESET << endl;
+        cout << left << name.c_str() << "Camera Released Successfully." << endl;
       }
     return result;
   }
@@ -116,59 +124,63 @@ public:
      * This is just for enumeration. We will only work with the
      * first HS Camera.
      */
-    printf("Starting Network Scan \t \t \t \t \t");
+    message = "Detecting Camera";
+    cout << left << message.c_str();
     EVT_ListDevices(deviceInfo, &listcam_buf_size, &count);
     if (count > 0)
       {
-	printf(COLOR_GREEN "[OK]\n" COLOR_RESET);
+	cout <<right << setw(_cursor_posn + 11 - strlen(message.c_str()));
+	cout << COLOR_GREEN "[OK]" COLOR_RESET << endl;
       }
     else
       {
-	printf(COLOR_RED "[FAILED]\n" COLOR_RESET);
+	cout <<right << setw(_cursor_posn + 11);
+	cout << COLOR_RED "[FAILED]" COLOR_RESET << endl;
       }
-    
-    printf("Number of Cameras: %d \n", count);
+
+    cout << left << "Number of Cameras: " << count << endl;
+
     for(camera_index=0; camera_index<count; camera_index++)
       {
-	printf("Camera index: ");
-	printf(COLOR_BLUE "%d \n" COLOR_RESET, camera_index);
+	cout << left << "Camera index: ";
+	cout << COLOR_BLUE << camera_index << COLOR_RESET << endl;
 	// Check if the detected camera belongs to type HS.
 	if (strncmp(deviceInfo[camera_index].modelName, "HS", 2) == 0)
 	  {
 	    // Print the name of the camera
-	    printf("%s : %s \t %s \t %s\n",
-		   deviceInfo[camera_index].manufacturerName, 
-		   deviceInfo[camera_index].modelName,
-		   deviceInfo[camera_index].currentIp,
-		   deviceInfo[camera_index].macAddress);
+	    cout << deviceInfo[camera_index].manufacturerName <<
+	      deviceInfo[camera_index].modelName <<
+	      deviceInfo[camera_index].currentIp <<
+	      deviceInfo[camera_index].macAddress << endl;	
 	  }
 	else
 	  {
-	    printf("No Emergent Cameras Detected. \n" COLOR_RESET);
+	    cout << left << "No Emergent Cameras Detected. " COLOR_RESET;
 	  }
       }
     
   }
 
-  // Read all the configuration files and return the vectors
-  const vector<string> get(string fname) const
+  // Read the configuration files and return the vectors
+  const vector<string> fileToVector(string fname) const
   {
+    string message = "Opening";
     vector<string> params;
-    printf("Opening %s \t \t \t \t", fname.c_str());
     ifstream paramfile(fname.c_str());
     if(!paramfile)
       {
-	printf(COLOR_RED "[FAILED]\n" COLOR_RESET);
-	printf("Error Opening file.\n");
+	cout << left << message.c_str() << fname.c_str();
+	cout << right << setw(_cursor_posn - strlen(message.c_str()));
+	cout << COLOR_RED "[FAILED]" COLOR_RESET << endl;
+	cout << left << "Error Opening file." << endl;
       }
     else
       {
-	printf(COLOR_GREEN "[OK]\n" COLOR_RESET);
 	for (string line; getline(paramfile, line);)
 	  params.push_back(line);
       }
     return params;
-  }
+  }  
 
   
   bp::list param_range(const char* param)
@@ -178,33 +190,24 @@ public:
      */
     bp::list result;
     size_t size = 3;
+    bool boolresult;
+    string temp;
     vector<unsigned int> array(size);
     vector<unsigned int>::iterator it;
     
-    vector<string> stringParam = get("./stringParam.conf");
+    vector<string> stringParam = fileToVector("./uint32Param.conf");
+    vector<string> boolParam = fileToVector("./boolParam.conf");
+    vector<string> enumParam = fileToVector("./enumParam.conf");
 
-    // Read all the string parameters from stringParam.conf file
-    //printf("Opening stringParamters configuration file \t \t");
-    /*
-    ifstream stringparameters("./stringParam.conf");
-    if(!stringparameters)
-      {
-	printf(COLOR_RED "[FAILED]\n" COLOR_RESET);
-	printf("Error Opening stringParam.conf file.\n");
-      }
-    else
-      {
-	printf(COLOR_GREEN "[OK]\n" COLOR_RESET);
-	for (string line; getline(stringparameters, line);)
-	  stringParam.push_back(line);
-      }
-    */
-    
-    // Check if the param exists in the file!
-    
+    const unsigned long enumBufferSize = 1000;
+    unsigned long enumBufferSizeReturn = 0;
+    char enumBuffer[enumBufferSize];
+    cout << left << "Looking up " << param;
+    // Find the parameter in the configuration files
     if (find(stringParam.begin(), stringParam.end(), param) != stringParam.end())
       {
-	printf("Found: %s\n", param);
+	cout << right << setw(_cursor_posn-strlen(param));
+	cout << COLOR_GREEN "[OK]" COLOR_RESET << endl;
 	// unsigned int max_param_value, min_param_value, inc_param_value;    
 	EVT_CameraGetUInt32ParamMax(&camera, param, &array[0]);
 	EVT_CameraGetUInt32ParamMin(&camera, param, &array[1]);
@@ -212,10 +215,36 @@ public:
 	
 	for (it= array.begin(); it != array.end(); ++it)
 	  {
-	    printf("%d \n", *it);
 	    result.append(*it);
 	  }
+      }
 
+    else if (find(boolParam.begin(), boolParam.end(), param) != boolParam.end())
+      {
+	cout << right << setw(_cursor_posn-strlen(param));
+	cout << COLOR_GREEN "[OK]" COLOR_RESET << endl;
+	EVT_CameraGetBoolParam(&camera, param, &boolresult);
+	temp = boolresult ? "true" : "false";
+	result.append(temp);
+      }
+
+    else if (find(enumParam.begin(), enumParam.end(), param) != enumParam.end())
+      {
+	cout << right << setw(_cursor_posn-strlen(param));
+	cout << COLOR_GREEN "[OK]" COLOR_RESET << endl;
+	EVT_CameraGetEnumParamRange(&camera, param, enumBuffer, enumBufferSize, &enumBufferSizeReturn);
+	char* buff = strtok_s(enumBuffer, ",", &next_token);
+	while(buff != NULL)
+	  {
+	    result.append(string(buff));
+	    buff = strtok (NULL, ",");
+	  }
+      }
+    else
+      {
+	cout << right << setw(_cursor_posn);
+	cout << COLOR_RED "[FAILED]" COLOR_RESET << endl;
+	cout << left << COLOR_YELLOW "Invalid Parameter Passed" COLOR_RESET << endl;
       }
     return result;
   }

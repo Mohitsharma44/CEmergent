@@ -20,7 +20,7 @@ LFLAGS = -L/opt/EVT/eSDK/lib/ -L/usr/lib -L/usr/lib/python2.7/config
 # define any libraries to link into executable:
 #   if I want to link in libraries (libx.so or libx.a) I use the -llibname 
 #   option, something like (this will link in libmylib.so and libm.so:
-LIBS = -lboost_python -lpython2.7 -lEmergentCamera -lEmergentGenICam -lEmergentGigEVision 
+LIBS = -lboost_python -lpython2.7 -lEmergentCamera -lEmergentGenICam -lEmergentGigEVision
 
 TARGET = $(DIR_OUT)/CEmergent.o $(DIR_OUT)/CEmergent.so
 
@@ -36,7 +36,7 @@ $(DIR_OUT)/%.so:  $(DIR_OUT)/%.o
 
 copyfiles:
 	cp $(CUR_DIR)/*.conf $(DIR_OUT)/
-
+	cp $(CUR_DIR)/test.py $(DIR_OUT)/
 clean:
 	$(RM) $(TARGET)
 	$(RM) $(DIR_OUT)/*.conf

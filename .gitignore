@@ -5,6 +5,9 @@ __pycache__/
 # C extensions
 *.so
 
+# Shared Object files
+test/out/
+
 # Temporary/ pyc files
 *.py~
 *.pyc

@@ -400,19 +400,31 @@ public:
     // Memory Allocation for capturing frames
     evtFrame.size_x = width;
     evtFrame.size_y = height;
-    // Maximum mem is used by RGB10_PACKED.. 
-    evtFrame.pixel_type = GVSP_PIX_RGB10_PACKED;
+    //evtFrame.pixel_type = GVSP_PIX_RGB10_PACKED;
+    //evtFrame.pixel_type = GVSP_PIX_MONO8;
+    evtFrame.pixel_type = GVSP_PIX_RGB8_PACKED;
     // Queuing the frame
-    EVT_AllocateFrameBuffer(&camera, &evtFrame, EVT_FRAME_BUFFER_ZERO_COPY);
-
+    result = EVT_AllocateFrameBuffer(&camera, &evtFrame, EVT_FRAME_BUFFER_ZERO_COPY);
+    if (result)
+      {
+	cout << "Frame Grab Allocate Frame Buffer Error = " << result << endl;
+      }
+    
     // Memory allocation for converted frames
     evtFrameConvert.size_x = width;
     evtFrameConvert.size_y = height;
-    evtFrameConvert.pixel_type = GVSP_PIX_RGB10_PACKED;
+    //evtFrameConvert.pixel_type = GVSP_PIX_RGB10_PACKED;
+    //evtFrameConvert.pixel_type = GVSP_PIX_MONO8;
+    evtFrameConvert.pixel_type = GVSP_PIX_RGB8_PACKED;
     evtFrameConvert.convertColor = EVT_COLOR_CONVERT_BILINEAR;
     evtFrameConvert.convertBitDepth = EVT_CONVERT_8BIT;
-    EVT_AllocateFrameBuffer(&camera, &evtFrameConvert, EVT_FRAME_BUFFER_DEFAULT);
-
+    
+    result = EVT_AllocateFrameBuffer(&camera, &evtFrameConvert, EVT_FRAME_BUFFER_DEFAULT);
+    if (result)
+      {
+	cout << "Frame Convert Allocate Frame Buffer Error = " << result << endl;
+      }
+    
     // Set the pixel format
     EVT_CameraSetEnumParam(&camera, "PixelFormat", format);
 
@@ -431,7 +443,7 @@ public:
     result = EVT_CameraExecuteCommand(&camera, "AcquisitionStart");
     if (result != 0)
       {
-	cout << "Camera Acquisition Error " << endl;
+	cout << "Camera Acquisition Error = " << result << endl;
 	return result;
       }
 
@@ -439,7 +451,7 @@ public:
     result = EVT_CameraGetFrame(&camera, &evtFrame, EVT_INFINITE);
     if (result != 0)
       {
-	cout << "Error Receiving Frames" << endl;
+	cout << "Error Receiving Frames = " << result << endl;
       }
     else
       {
@@ -448,6 +460,7 @@ public:
 
     // Tell Camera to stop streaming
     EVT_CameraExecuteCommand(&camera, "AcquisitionStop");
+    cout << "capture_image: " << result << endl;
     return result;
   }
 
@@ -462,11 +475,15 @@ public:
 	cout << "Error Capturing Frame" << endl;
       }
 
-    EVT_FrameSave(&evtFrame, filename, EVT_FILETYPE_TIF, EVT_ALIGN_NONE);
+    result = EVT_FrameSave(&evtFrame, filename, EVT_FILETYPE_TIF, EVT_ALIGN_NONE);
+    if (result)
+      {
+	cout << "Frame Save Error = " << result << endl;
+      }
     //EVT_FrameSave(&evtFrame, filename, EVT_FILETYPE_RAW, EVT_ALIGN_NONE);
     cout << "Done!" << endl;
 
-    // Teardown
+    // Teardown buffer and camera stream
     EVT_ReleaseFrameBuffer(&camera, &evtFrame);
     EVT_ReleaseFrameBuffer(&camera, &evtFrameConvert);
     EVT_CameraCloseStream(&camera);

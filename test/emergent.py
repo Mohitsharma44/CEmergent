@@ -58,11 +58,11 @@ class ECapture(HsCam):
     def read_parameter(self, param):
         self._readConfigFiles()
         if param in self.uintParam.keys():
-            print self._uint_param_range(param)
+            return self._uint_param_range(param)
         elif param in self.boolParam.keys():
-            print self._bool_param_range(param)
+            return self._bool_param_range(param)
         elif param in self.enumParam.keys():
-            print self._enum_param_range(param)
+            return self._enum_param_range(param)
                     
     def set_parameter(self, param, value):
         ## --- TODO: Write it to the files -- ##
@@ -94,20 +94,22 @@ if __name__ == '__main__':
     ec.get_camera(cam_index)
 
     ec.read_parameter('Exposure')
-    ec.set_parameter('Exposure', 1200)
-    ec.read_parameter('Width')
-    ec.set_parameter('Width', 1044)
+    ec.set_parameter('Exposure', 2000)
+    
+    w = ec.read_parameter('Width')[0]
+    ec.set_parameter('Width', w)
 
-    ec.read_parameter('OffsetX')
-    ec.set_parameter('OffsetX', 256)
+    #ec.read_parameter('OffsetX')
+    #ec.set_parameter('OffsetX', 256)
 
-    ec.read_parameter('Height')
-    ec.set_parameter('Height', 1024)
+    h = ec.read_parameter('Height')[0]
+    ec.set_parameter('Height', h)
+    
+    #ec.read_parameter('OffsetY')
+    #ec.set_parameter('OffsetY', 256)
+    
+    ec.capture_raw(height= h, width= w,
+                   form="RGB8Packed", compression="RAW",
+                   filename="test.tif")
 
-    ec.read_parameter('OffsetY')
-    ec.set_parameter('OffsetY', 256)
-
-    ec.capture_raw(height= 1024, width= 1044,
-                   form="Mono8", compression="RAW",
-                   filename="test.raw")
     ec.release_camera()

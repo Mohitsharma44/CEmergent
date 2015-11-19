@@ -1,5 +1,6 @@
 import re
-#import CEmergent as ce
+import time
+from datetime import datetime
 from CEmergent import HsCam
 
 #cam = ce.HsCam()
@@ -84,32 +85,39 @@ class ECapture(HsCam):
     def capture_raw(self, height, width,
                     form, compression,
                     filename):
-        print self._capture_raw(height, width, form,
-                                compression, filename)
-                
+        self._capture_raw(height, width, form,
+                          compression, filename)
+
+    def open_cam_stream(self):
+        self._open_cam_stream()
+
+    def close_cam_stream(self):
+        self._close_cam_stream()
+        
 if __name__ == '__main__':
     ec = ECapture()
-    ec._readConfigFiles()
     cam_index = ec.detect_camera()
     ec.get_camera(cam_index)
-
+    
+    ec._readConfigFiles()
+    
     ec.read_parameter('Exposure')
     ec.set_parameter('Exposure', 2000)
     
     w = ec.read_parameter('Width')[0]
     ec.set_parameter('Width', w)
-
-    #ec.read_parameter('OffsetX')
-    #ec.set_parameter('OffsetX', 256)
-
+    
     h = ec.read_parameter('Height')[0]
     ec.set_parameter('Height', h)
-    
-    #ec.read_parameter('OffsetY')
-    #ec.set_parameter('OffsetY', 256)
-    
-    ec.capture_raw(height= h, width= w,
-                   form="RGB8Packed", compression="RAW",
-                   filename="test.tif")
 
+    ec.open_cam_stream()
+    
+    for i in range(10):
+        print time.time()
+        ec.capture_raw(height= h, width= w,
+                       form="Mono8", compression="RAW",
+                       filename="test_%d.raw"%i)
+        time.sleep(2)
+        
+    ec.close_cam_stream()
     ec.release_camera()

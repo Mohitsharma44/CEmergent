@@ -388,15 +388,34 @@ public:
     return result;
   }
 
-  int capture_image(int height, int width, const char* format, const char* compression)
+  int open_cam_stream()
   {
     int result;
-    //cout << height << endl << width << endl << format << endl << compression << endl;
     result = EVT_CameraOpenStream(&camera);
     if (result != 0)
       {
 	cout << "Cannot open Camera stream " << result << endl;
       }
+    return result;
+  }
+
+  int close_cam_stream()
+  {
+    int result;
+    result = EVT_CameraCloseStream(&camera);
+    if (result != 0)
+      {
+	cout << "Cannot close Camera stream " << result << endl;
+      }
+    return result;
+  }
+  
+  
+  int capture_image(int height, int width, const char* format, const char* compression)
+  {
+    int result;
+    //cout << height << endl << width << endl << format << endl << compression << endl;
+    
     // Memory Allocation for capturing frames
     evtFrame.size_x = width;
     evtFrame.size_y = height;
@@ -430,7 +449,7 @@ public:
 
     // Lets now grab a single frame
     unsigned int frames_recd = 0;
-    cout << "Grabbing a single Frame" << endl;
+    //cout << "Grabbing a single Frame" << endl;
 
     // Queueing the Frames
     result = EVT_CameraQueueFrame(&camera, &evtFrame);
@@ -460,7 +479,7 @@ public:
 
     // Tell Camera to stop streaming
     EVT_CameraExecuteCommand(&camera, "AcquisitionStop");
-    cout << "capture_image: " << result << endl;
+    //cout << "capture_image: " << result << endl;
     return result;
   }
 
@@ -475,7 +494,7 @@ public:
 	cout << "Error Capturing Frame" << endl;
       }
 
-    result = EVT_FrameSave(&evtFrame, filename, EVT_FILETYPE_TIF, EVT_ALIGN_NONE);
+    result = EVT_FrameSave(&evtFrame, filename, EVT_FILETYPE_RAW, EVT_ALIGN_NONE);
     if (result)
       {
 	cout << "Frame Save Error = " << result << endl;
@@ -486,7 +505,7 @@ public:
     // Teardown buffer and camera stream
     EVT_ReleaseFrameBuffer(&camera, &evtFrame);
     EVT_ReleaseFrameBuffer(&camera, &evtFrameConvert);
-    EVT_CameraCloseStream(&camera);
+    
   }
 
 };
@@ -509,6 +528,7 @@ BOOST_PYTHON_MODULE(CEmergent)
     .def("_get_camera", &HsCam::get_camera, (bp::arg("camera_index")),
 	 "Obtain a lock on the camera")
     .def("_release_camera", &HsCam::release_camera, "Release the lock on the camera")
+
     // Get Parameters
     .def("_uint_param_range", &HsCam::uint_param_range, (bp::arg("param")), 
 	 "Get value for the uint parameter passed in argument. "
@@ -535,6 +555,12 @@ BOOST_PYTHON_MODULE(CEmergent)
 	 "\n \t for list of paramters refer " HELP_FILE)
 
 
+    // Open and Close cam streams
+    .def("_open_cam_stream", &HsCam::open_cam_stream, "Open the Camera Stream for capturing images")
+    
+    .def("_close_cam_stream", &HsCam::close_cam_stream, "Close the Camera Stream")
+
+    
     // Capture image
     .def("_capture_raw", &HsCam:: capture_raw, ((bp::arg("height")), (bp::arg("width")),
 						(bp::arg("format")), (bp::arg("compression")),

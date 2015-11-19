@@ -23,4 +23,4 @@ cd ./out
 
 python emergent.py
 
-xdg-open test.tif
+#xdg-open test.tif

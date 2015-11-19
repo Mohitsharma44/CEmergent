@@ -36,7 +36,7 @@ $(DIR_OUT)/%.so:  $(DIR_OUT)/%.o
 
 copyfiles:
 	cp $(CUR_DIR)/*.conf $(DIR_OUT)/
-	cp $(CUR_DIR)/test.py $(DIR_OUT)/
+	cp $(CUR_DIR)/*.py $(DIR_OUT)/
 clean:
 	$(RM) $(TARGET)
 	$(RM) $(DIR_OUT)/*.conf

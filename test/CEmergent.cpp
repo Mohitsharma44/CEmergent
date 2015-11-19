@@ -16,6 +16,7 @@ NYU CUSP 2015
 #include <boost/python.hpp>
 #include <vector>
 #include <algorithm>
+#include <EmergentFrameSave.h>
 
 using namespace std;
 using namespace Emergent;
@@ -43,7 +44,56 @@ public:
   unsigned int count, camera_index;
   string ip, serial, mac, name, subnet, gateway, firmver;
 
-  string message;
+  string message;  
+
+  CEmergentFrame evtFrame, evtFrameConvert;
+  unsigned int enum_count;
+  char filename[100];
+
+
+  void configure_defaults(CEmergentCamera* camera)
+  {
+    unsigned int width_max, height_max, param_val_max;
+    const unsigned long enumBufferSize = 1000;
+    unsigned long enumBufferSizeReturn = 0;
+    char enumBuffer[enumBufferSize];
+    
+    //Order is important as param max/mins get updated.
+    
+    EVT_CameraGetEnumParamRange(camera, "PixelFormat", enumBuffer, enumBufferSize, &enumBufferSizeReturn);
+    char* enumMember = strtok_s(enumBuffer, ",", &next_token);
+    EVT_CameraSetEnumParam(camera,      "PixelFormat", enumMember);
+    
+    EVT_CameraSetUInt32Param(camera,    "FrameRate", 30);
+    
+    EVT_CameraSetUInt32Param(camera,    "OffsetX", 0);
+    EVT_CameraSetUInt32Param(camera,    "OffsetY", 0);
+    
+    EVT_CameraGetUInt32ParamMax(camera, "Width", &width_max);
+    //EVT_CameraSetUInt32Param(camera,    "Width", 1044);
+    
+    EVT_CameraGetUInt32ParamMax(camera, "Height", &height_max);
+    //EVT_CameraSetUInt32Param(camera,    "Height", 1024);
+    
+    EVT_CameraSetEnumParam(camera,      "AcquisitionMode",        "Continuous");
+    EVT_CameraSetUInt32Param(camera,    "AcquisitionFrameCount",  1);
+    EVT_CameraSetEnumParam(camera,      "TriggerSelector",        "AcquisitionStart");
+    EVT_CameraSetEnumParam(camera,      "TriggerMode",            "Off");
+    EVT_CameraSetEnumParam(camera,      "TriggerSource",          "Software");
+    EVT_CameraSetEnumParam(camera,      "BufferMode",             "Off");
+    
+    EVT_CameraSetUInt32Param(camera,    "BufferNum",              0);
+    
+    EVT_CameraGetUInt32ParamMax(camera, "GevSCPSPacketSize", &param_val_max);
+    EVT_CameraSetUInt32Param(camera,    "GevSCPSPacketSize", param_val_max);
+    
+    EVT_CameraSetUInt32Param(camera,    "Gain", 256);
+    EVT_CameraSetUInt32Param(camera,    "Offset", 0);
+    
+    EVT_CameraSetBoolParam(camera,      "LUTEnable", false);
+    EVT_CameraSetBoolParam(camera,      "AutoGain", false);
+  }                                                
+
   
   int get_camera(unsigned int cam_index = 0)
   {
@@ -63,7 +113,7 @@ public:
 	name = deviceInfo[cam_index].modelName;
 	cout << right << setw(_cursor_posn + 11 - strlen(message.c_str()));
 	cout << COLOR_GREEN "[OK]" COLOR_RESET << endl;
-	cout << left << "Camera" << name.c_str() << "acquired successfully" << endl;
+	cout << left << "Camera " << name.c_str() << " acquired successfully" << endl;
 	serial = deviceInfo[cam_index].serialNumber;
 	mac = deviceInfo[cam_index].macAddress;
 	ip = deviceInfo[cam_index].currentIp;
@@ -78,6 +128,7 @@ public:
             firmver = StringBuffer;
           }
       }
+    /*
     else if (result == 290)
       {
 	cout << right << setw(_cursor_posn + 11-strlen(message.c_str()));
@@ -90,6 +141,7 @@ public:
 	cout << COLOR_GREEN "[WARNING]\n" COLOR_RESET << endl;
 	cout << left << "Camera already acquired." COLOR_RESET << endl;
       }
+    */
     return result;
   }
   
@@ -98,26 +150,29 @@ public:
   {
     message = "Releasing Camera";
     int result;
-    cout << left << message << name.c_str();
+    cout << left << message;
     result = EVT_CameraClose(&camera);
     //printf("%d \n", result);
     // It is either 0 or non zero.
-    if (result != 0)
-      {
-	cout << right << setw(_cursor_posn + 11 - strlen(message.c_str()));
-	cout << COLOR_RED "[FAILED]" COLOR_RESET << endl;
-	cout << left << "Camera" << name.c_str() << "Locked. Close any process using the camera and try again"<< endl;
-      }
-    else
+
+    if (result == 0)
       {
 	cout <<right << setw(_cursor_posn + 11 - strlen(message.c_str()));
 	cout << COLOR_GREEN "[OK]" COLOR_RESET << endl;
         cout << left << name.c_str() << "Camera Released Successfully." << endl;
       }
+    /*
+      if (result != 0)
+      {
+	cout << right << setw(_cursor_posn + 11 - strlen(message.c_str()));
+	cout << COLOR_RED "[FAILED]" COLOR_RESET << endl;
+	cout << left << "Camera" << name.c_str() << "Locked. Close any process using the camera and try again"<< endl;
+      }
+    */
     return result;
   }
 
-  void detect_camera()
+  int detect_camera()
   {
     unsigned int listcam_buf_size = MAX_CAMERAS;
     /* Count all the Emergent Cameras regardless of their types
@@ -148,9 +203,10 @@ public:
 	if (strncmp(deviceInfo[camera_index].modelName, "HS", 2) == 0)
 	  {
 	    // Print the name of the camera
-	    cout << deviceInfo[camera_index].manufacturerName <<
-	      deviceInfo[camera_index].modelName <<
-	      deviceInfo[camera_index].currentIp <<
+	    cout << endl;
+	    cout << deviceInfo[camera_index].manufacturerName << endl <<
+	      deviceInfo[camera_index].modelName << endl <<
+	      deviceInfo[camera_index].currentIp << endl << 
 	      deviceInfo[camera_index].macAddress << endl;	
 	  }
 	else
@@ -158,9 +214,10 @@ public:
 	    cout << left << "No Emergent Cameras Detected. " COLOR_RESET;
 	  }
       }
-    
+    return camera_index-1;
   }
-
+  
+  /*
   // Read the configuration files and return the vectors
   const vector<string> fileToVector(string fname) const
   {
@@ -181,13 +238,13 @@ public:
       }
     return params;
   }  
-
+  
   
   bp::list param_range(const char* param)
   {
-    /* Return list of [MAX, MIN, INC] values for a
-     * particular paramter string
-     */
+    // Return list of [MAX, MIN, INC] values for a
+     / particular paramter string
+     //
     bp::list result;
     size_t size = 3;
     bool boolresult;
@@ -248,9 +305,174 @@ public:
       }
     return result;
   }
+  */
   
-};
+  bp::list uint_param_range(const char* param)
+  {
+    // Return list of [MAX, MIN, INC] values for a
+    // particular paramter string
+    //
+    bp::list result;
+    size_t size = 3;
+    
+    vector<unsigned int> array(size);
+    vector<unsigned int>::iterator it;
+    
+    EVT_CameraGetUInt32ParamMax(&camera, param, &array[0]);
+    EVT_CameraGetUInt32ParamMin(&camera, param, &array[1]);
+    EVT_CameraGetUInt32ParamInc(&camera, param, &array[2]);
 
+    for (it= array.begin(); it != array.end(); ++it)
+      {
+	result.append(*it);
+      }
+    
+    return result;
+  }
+
+  bp::list bool_param_range(const char* param)
+  {
+    // Return list of [MAX, MIN, INC] values for a
+    // particular paramter string
+    //
+    bp::list result;
+    bool boolresult;
+
+    EVT_CameraGetBoolParam(&camera, param, &boolresult);
+    //temp = boolresult ? "true" : "false";
+    result.append(boolresult);
+
+    return result;
+  }
+
+  bp::list enum_param_range(const char* param)
+  {
+    // Return list of [MAX, MIN, INC] values for a
+    // particular paramter string
+    //
+    bp::list result;
+
+    const unsigned long enumBufferSize = 1000;
+    unsigned long enumBufferSizeReturn = 0;
+    char enumBuffer[enumBufferSize];
+  
+    EVT_CameraGetEnumParamRange(&camera, param, enumBuffer, enumBufferSize, &enumBufferSizeReturn);
+    char* buff = strtok_s(enumBuffer, ",", &next_token);
+    while(buff != NULL)
+      {
+	result.append(string(buff));
+	buff = strtok (NULL, ",");
+      }
+
+    return result;
+  }
+
+  int set_uint_param(const char* param, int val)
+  {
+    int result;
+    result = EVT_CameraSetUInt32Param(&camera, param, val);
+    return result;
+  }
+
+  int set_bool_param(const char* param, bool val)
+  {
+    int result;
+    result = EVT_CameraSetBoolParam(&camera, param, val);
+    return result;
+  }
+
+  int set_enum_param(const char* param, const char* val)
+  {
+    int result;
+    result = EVT_CameraSetEnumParam(&camera, param, val);
+    return result;
+  }
+
+  int capture_image(int height, int width, const char* format, const char* compression)
+  {
+    int result;
+    //cout << height << endl << width << endl << format << endl << compression << endl;
+    result = EVT_CameraOpenStream(&camera);
+    if (result != 0)
+      {
+	cout << "Cannot open Camera stream " << result << endl;
+      }
+    // Memory Allocation for capturing frames
+    evtFrame.size_x = width;
+    evtFrame.size_y = height;
+    // Maximum mem is used by RGB10_PACKED.. 
+    evtFrame.pixel_type = GVSP_PIX_RGB10_PACKED;
+    // Queuing the frame
+    EVT_AllocateFrameBuffer(&camera, &evtFrame, EVT_FRAME_BUFFER_ZERO_COPY);
+
+    // Memory allocation for converted frames
+    evtFrameConvert.size_x = width;
+    evtFrameConvert.size_y = height;
+    evtFrameConvert.pixel_type = GVSP_PIX_RGB10_PACKED;
+    evtFrameConvert.convertColor = EVT_COLOR_CONVERT_BILINEAR;
+    evtFrameConvert.convertBitDepth = EVT_CONVERT_8BIT;
+    EVT_AllocateFrameBuffer(&camera, &evtFrameConvert, EVT_FRAME_BUFFER_DEFAULT);
+
+    // Set the pixel format
+    EVT_CameraSetEnumParam(&camera, "PixelFormat", format);
+
+    // Lets now grab a single frame
+    unsigned int frames_recd = 0;
+    cout << "Grabbing a single Frame" << endl;
+
+    // Queueing the Frames
+    result = EVT_CameraQueueFrame(&camera, &evtFrame);
+    if (result)
+      {
+	cout << "EVT_CameraQueueFrame Error = " << result << endl; 
+      }
+
+    // Tell Camera to start streaming
+    result = EVT_CameraExecuteCommand(&camera, "AcquisitionStart");
+    if (result != 0)
+      {
+	cout << "Camera Acquisition Error " << endl;
+	return result;
+      }
+
+    // Receive Frame
+    result = EVT_CameraGetFrame(&camera, &evtFrame, EVT_INFINITE);
+    if (result != 0)
+      {
+	cout << "Error Receiving Frames" << endl;
+      }
+    else
+      {
+	frames_recd++;
+      }
+
+    // Tell Camera to stop streaming
+    EVT_CameraExecuteCommand(&camera, "AcquisitionStop");
+    return result;
+  }
+
+  void capture_raw(int height, int width, const char* format,
+		  const char* compression, const char* filename)
+  {
+    int result;
+    configure_defaults(&camera);
+    result = capture_image(height, width, format, compression);
+    if (result != 0)
+      {
+	cout << "Error Capturing Frame" << endl;
+      }
+
+    EVT_FrameSave(&evtFrame, filename, EVT_FILETYPE_TIF, EVT_ALIGN_NONE);
+    //EVT_FrameSave(&evtFrame, filename, EVT_FILETYPE_RAW, EVT_ALIGN_NONE);
+    cout << "Done!" << endl;
+
+    // Teardown
+    EVT_ReleaseFrameBuffer(&camera, &evtFrame);
+    EVT_ReleaseFrameBuffer(&camera, &evtFrameConvert);
+    EVT_CameraCloseStream(&camera);
+  }
+
+};
 
 
 BOOST_PYTHON_MODULE(CEmergent)
@@ -258,7 +480,6 @@ BOOST_PYTHON_MODULE(CEmergent)
   // docstring_options(bool user_defined, bool py_signatures, bool cpp_signatures);
   bp::docstring_options local_docstring_options(true, true, false);
   bp::class_<HsCam>("HsCam", "Wrapper Class for Emergent HS cameras")
-    .def("detect_camera", &HsCam::detect_camera, "Detect the HS camera connected on the LAN")
     .def_readonly("name", &HsCam::name, "Manufacturer specified Name of the camera")
     .def_readonly("ip", &HsCam::ip, "IP Address obtained by the camera")
     .def_readonly("mac", &HsCam::mac, "MAC Address of the camera")
@@ -266,11 +487,43 @@ BOOST_PYTHON_MODULE(CEmergent)
     .def_readonly("subnet", &HsCam::subnet, "Subnet mast configured on the camera")
     .def_readonly("gateway", &HsCam::gateway, "Gateway address")
     .def_readonly("firmver", &HsCam::firmver, "Current Firmware version on the camera")
-    .def("get_camera", &HsCam::get_camera, (bp::arg("camera_index")),
+
+    .def("_detect_camera", &HsCam::detect_camera, "Detect the HS camera connected on the LAN")
+    .def("_get_camera", &HsCam::get_camera, (bp::arg("camera_index")),
 	 "Obtain a lock on the camera")
-    .def("release_camera", &HsCam::release_camera, "Release the lock on the camera")
-    .def("param_range", &HsCam::param_range, (bp::arg("param")), 
-	 "Get current value for the parameter passed in argument. "
+    .def("_release_camera", &HsCam::release_camera, "Release the lock on the camera")
+    // Get Parameters
+    .def("_uint_param_range", &HsCam::uint_param_range, (bp::arg("param")), 
+	 "Get value for the uint parameter passed in argument. "
 	 "\n \t for list of paramters refer " HELP_FILE)
+    .def("_bool_param_range", &HsCam::bool_param_range, (bp::arg("param")), 
+	 "Get current value for the bool parameter passed in argument. "
+	 "\n \t for list of paramters refer " HELP_FILE)
+    .def("_enum_param_range", &HsCam::enum_param_range, (bp::arg("param")), 
+	 "Get value for the enum parameter passed in argument. "
+	 "\n \t for list of paramters refer " HELP_FILE)
+    
+    
+    // set parameters
+    .def("_set_uint_param", &HsCam:: set_uint_param, (bp::arg("param")), (bp::arg("val")),
+	 "Set value for the parameter passed in argument. "
+	 "\n \t for list of paramters refer " HELP_FILE)
+    
+    .def("_set_bool_param", &HsCam:: set_bool_param, (bp::arg("param")), (bp::arg("val")),
+	 "Set value for the parameter passed in argument. "
+	 "\n \t for list of paramters refer " HELP_FILE)
+
+    .def("_set_enum_param", &HsCam:: set_enum_param, (bp::arg("param")), (bp::arg("val")),
+	 "Set value for the parameter passed in argument. "
+	 "\n \t for list of paramters refer " HELP_FILE)
+
+
+    // Capture image
+    .def("_capture_raw", &HsCam:: capture_raw, ((bp::arg("height")), (bp::arg("width")),
+						(bp::arg("format")), (bp::arg("compression")),
+						(bp::arg("filename"))),
+	 "Capture image in raw format. Parameters required: \n\t height \n\t width \n\t format \n\t"
+	 "compression \n\t filename \n \t for more info refer " HELP_FILE)
+
     ;
 }

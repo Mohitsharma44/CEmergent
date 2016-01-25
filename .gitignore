@@ -12,6 +12,7 @@ test/out/
 *.py~
 *.pyc
 *.~
+*\#*
 
 #ipynb checkpoints
 .ipynb_checkpoints/

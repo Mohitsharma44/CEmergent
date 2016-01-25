@@ -111,9 +111,9 @@ public:
     if (result == 0)
       {
 	name = deviceInfo[cam_index].modelName;
-	cout << right << setw(_cursor_posn + 11 - strlen(message.c_str()));
-	cout << COLOR_GREEN "[OK]" COLOR_RESET << endl;
-	cout << left << "Camera " << name.c_str() << " acquired successfully" << endl;
+	//cout << right << setw(_cursor_posn + 11 - strlen(message.c_str()));
+	//cout << COLOR_GREEN "[OK]" COLOR_RESET << endl;
+	//cout << left << "Camera " << name.c_str() << " acquired successfully" << endl;
 	serial = deviceInfo[cam_index].serialNumber;
 	mac = deviceInfo[cam_index].macAddress;
 	ip = deviceInfo[cam_index].currentIp;
@@ -155,13 +155,13 @@ public:
     //printf("%d \n", result);
     // It is either 0 or non zero.
 
-    if (result == 0)
+    /*if (result == 0)
       {
 	cout <<right << setw(_cursor_posn + 11 - strlen(message.c_str()));
 	cout << COLOR_GREEN "[OK]" COLOR_RESET << endl;
         cout << left << name.c_str() << "Camera Released Successfully." << endl;
       }
-    /*
+    
       if (result != 0)
       {
 	cout << right << setw(_cursor_posn + 11 - strlen(message.c_str()));
@@ -182,7 +182,7 @@ public:
     message = "Detecting Camera";
     cout << left << message.c_str();
     EVT_ListDevices(deviceInfo, &listcam_buf_size, &count);
-    if (count > 0)
+    /*if (count > 0)
       {
 	cout <<right << setw(_cursor_posn + 11 - strlen(message.c_str()));
 	cout << COLOR_GREEN "[OK]" COLOR_RESET << endl;
@@ -191,18 +191,18 @@ public:
       {
 	cout <<right << setw(_cursor_posn + 11);
 	cout << COLOR_RED "[FAILED]" COLOR_RESET << endl;
-      }
+	}*/
 
-    cout << left << "Number of Cameras: " << count << endl;
+    //cout << left << "Number of Cameras: " << count << endl;
 
     for(camera_index=0; camera_index<count; camera_index++)
       {
-	cout << left << "Camera index: ";
-	cout << COLOR_BLUE << camera_index << COLOR_RESET << endl;
+	//cout << left << "Camera index: ";
+	//cout << COLOR_BLUE << camera_index << COLOR_RESET << endl;
 	// Check if the detected camera belongs to type HS.
 	if (strncmp(deviceInfo[camera_index].modelName, "HS", 2) == 0)
 	  {
-	    // Print the name of the camera
+	    //Print the name of the camera
 	    cout << endl;
 	    cout << deviceInfo[camera_index].manufacturerName << endl <<
 	      deviceInfo[camera_index].modelName << endl <<
@@ -392,10 +392,10 @@ public:
   {
     int result;
     result = EVT_CameraOpenStream(&camera);
-    if (result != 0)
+    /*if (result != 0)
       {
 	cout << "Cannot open Camera stream " << result << endl;
-      }
+	}*/
     return result;
   }
 
@@ -403,10 +403,10 @@ public:
   {
     int result;
     result = EVT_CameraCloseStream(&camera);
-    if (result != 0)
+    /*if (result != 0)
       {
 	cout << "Cannot close Camera stream " << result << endl;
-      }
+	}*/
     return result;
   }
   
@@ -462,7 +462,7 @@ public:
     result = EVT_CameraExecuteCommand(&camera, "AcquisitionStart");
     if (result != 0)
       {
-	cout << "Camera Acquisition Error = " << result << endl;
+	//cout << "Camera Acquisition Error = " << result << endl;
 	return result;
       }
 
@@ -500,7 +500,7 @@ public:
 	cout << "Frame Save Error = " << result << endl;
       }
     //EVT_FrameSave(&evtFrame, filename, EVT_FILETYPE_RAW, EVT_ALIGN_NONE);
-    cout << "Done!" << endl;
+    //cout << "Done!" << endl;
 
     // Teardown buffer and camera stream
     EVT_ReleaseFrameBuffer(&camera, &evtFrame);

@@ -1,30 +1,42 @@
-/*
-Author: Mohit Sharma
+/*Author: Mohit Sharma
 Date: Oct 30 2015
 Version: Development
 NYU CUSP 2015
 */
+/*
+#ifndef _CLOCK_T_DEFINED
+typedef long clock_t
+#define _CLOCK_T_DEFINED
+#endif
+*/
 
 #include <stdio.h>
 #include <string.h>
+#include <boost/python.hpp>
 #include <EmergentCameraAPIs.h>
 #include <EvtParamAttribute.h>
 #include <gigevisiondeviceinfo.h>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-#include <boost/python.hpp>
 #include <vector>
 #include <algorithm>
 #include <EmergentFrameSave.h>
+#include <time.h>
+#include <chrono>
+#include <unistd.h>
+#include <boost/python/numpy.hpp>
+//try
 
 using namespace std;
 using namespace Emergent;
 namespace bp=boost::python;
+namespace np = boost::python::numpy;
 
 #define MAX_CAMERAS 10
 #define HELP_FILE "help_file.md"
 #define  _cursor_posn 58
+
 
 // ANSI escape codes to show colors on terminal
 #define COLOR_RED     "\x1b[31m"
@@ -34,6 +46,10 @@ namespace bp=boost::python;
 #define COLOR_MAGENTA "\x1b[35m"
 #define COLOR_CYAN    "\x1b[36m"
 #define COLOR_RESET   "\x1b[0m"
+
+//int currenttime()
+//{
+//}
 
 class HsCam
 {
@@ -81,6 +97,7 @@ public:
     EVT_CameraSetEnumParam(camera,      "TriggerMode",            "Off");
     EVT_CameraSetEnumParam(camera,      "TriggerSource",          "Software");
     EVT_CameraSetEnumParam(camera,      "BufferMode",             "Off");
+    EVT_CameraSetEnumParam(camera,      "SubSample",             "SUBS_2x2");
     
     EVT_CameraSetUInt32Param(camera,    "BufferNum",              0);
     
@@ -447,8 +464,6 @@ public:
     // Set the pixel format
     EVT_CameraSetEnumParam(&camera, "PixelFormat", format);
 
-    // Lets now grab a single frame
-    unsigned int frames_recd = 0;
     //cout << "Grabbing a single Frame" << endl;
 
     // Queueing the Frames
@@ -458,12 +473,60 @@ public:
 	cout << "EVT_CameraQueueFrame Error = " << result << endl; 
       }
 
+    //cout << "capture_image: " << result << endl;
+    return result;
+  }
+
+  void capture_raw(int height, int width, const char* format,
+		  const char* compression, const char* filename)
+  {
+    configure_defaults(&camera);
+    int result;
+    typedef std::chrono::high_resolution_clock Time;
+    typedef std::chrono::milliseconds ms;
+    typedef std::chrono::duration<float> fsec;
+    //try time
+   // boost::chrono::high_resolution_clock::time_point start = boost::chrono::high_resoltuion_clock::now()'
+
+    //clock_t temptime;
+    //temptime = (double)clock();
+    //auto time0 = Time::now();
+    //cout<<"time_before_capture_raw: ";
+    //cout<< time0 <<endl;
+    //sleep(2);
+    //temptime = (double)clock();
+    //cout<<"time_after_sleep_2000ms: "<<temptime << endl;
+    /* timeval curTime;
+    gettimeofday(&curTime, NULL);
+    int milli = curTime.tv_usec / 1000;
+    char buffer [80];
+    strftime(buffer, 80 "%Y-%m-%d %H:%M:%S", localtime(&curTime.tv_sec));
+    
+    char currentTime[84] = "";
+    sprintf(currentTime, "%s:%d", buffer, milli);
+    printf("current time: %s \n", currentTime);
+    */
+    //temptime = (double)clock();
+    //cout<<"time_before_conf_default: "<<temptime<<endl;
+
+    
+    //temptime = (double)clock();
+    // cout<<"time_after_conf_default: "<<temptime<<endl;
+
+    // Lets now grab a single frame
+    unsigned int frames_recd = 0;
+
+    result = capture_image(height, width, format, compression);
+    if (result != 0)
+      {
+	cout << "Error Capturing Frame" << endl;
+      }
+    auto time0 = Time::now();
     // Tell Camera to start streaming
     result = EVT_CameraExecuteCommand(&camera, "AcquisitionStart");
     if (result != 0)
       {
 	//cout << "Camera Acquisition Error = " << result << endl;
-	return result;
       }
 
     // Receive Frame
@@ -479,22 +542,20 @@ public:
 
     // Tell Camera to stop streaming
     EVT_CameraExecuteCommand(&camera, "AcquisitionStop");
-    //cout << "capture_image: " << result << endl;
-    return result;
-  }
 
-  void capture_raw(int height, int width, const char* format,
-		  const char* compression, const char* filename)
-  {
-    int result;
-    configure_defaults(&camera);
-    result = capture_image(height, width, format, compression);
-    if (result != 0)
-      {
-	cout << "Error Capturing Frame" << endl;
-      }
 
-    result = EVT_FrameSave(&evtFrame, filename, EVT_FILETYPE_RAW, EVT_ALIGN_NONE);
+    // result = capture_image(height, width, format, compression);
+       
+    //temptime = (double)clock();
+    //cout<<"time_after_capure_image: "<<temptime<<endl;
+
+    //if (result != 0)
+    //  {
+    //	cout << "Error Capturing Frame" << endl;
+    //  }
+
+    //result = EVT_FrameSave(&evtFrame, filename, EVT_FILETYPE_RAW, EVT_ALIGN_NONE);
+    result = 0;
     if (result)
       {
 	cout << "Frame Save Error = " << result << endl;
@@ -502,10 +563,72 @@ public:
     //EVT_FrameSave(&evtFrame, filename, EVT_FILETYPE_RAW, EVT_ALIGN_NONE);
     //cout << "Done!" << endl;
 
+
+    // ---- Frame manipulation
+
+    unsigned char *frame_img_ptr = new unsigned char;
+    int nelems = 4096*3072;
+    int *array2 = new int[nelems];
+    
+    frame_img_ptr = evtFrame.imagePtr;
+    cout << " ------ " << endl;
+    cout << frame_img_ptr[4000] << endl;
+    cout << " ------ " << endl;
+
+    /** Contents of evtFrame
+    cout << "Size X: ";
+    cout << evtFrame.size_x << endl;
+    cout << "Size Y: ";
+    cout << evtFrame.size_y << endl;
+    cout << "Convert Color: ";
+    cout << evtFrame.convertColor << endl;
+    cout << "Convert Bit Depth: ";
+    cout << evtFrame.convertBitDepth << endl;
+    **/
+
+    //copy(frame_img_ptr, frame_img_ptr+nelems, array2);
+    
+    //for (int i = 0; i < nelems; i+=2) {
+    //  array2[i] = frame_img_ptr[i];
+    //}
+
+    memcpy(array2, frame_img_ptr, sizeof(frame_img_ptr));
+    
+    //for (int i = 0; i < nelems; i++) {
+    //  cout << array2[i];
+    //}
+    /*
+    np::dtype dt = np::dtype::get_builtin<int>();
+    bp::tuple shape = bp::make_tuple(nelems);
+    bp::tuple stride = bp::make_tuple(sizeof(int));
+    bp::object own;
+
+    np::ndarray imgarr = np::from_data(array2, dt, shape, stride, own);
+    //cout << "Single dimensional array ::" << endl
+    // << bp::extract<char const *>(bp::str(imgarr)) << endl;
+    */
+    cout << "Printing 1000th element: ";
+    cout << array2[1000] << endl;
+    // ----
+
+    
+    //try
+    //temptime = clock();
+    auto time1 = Time::now();
+    fsec fs = time1 - time0;
+    ms d = std::chrono::duration_cast<ms>(fs);
+    cout<<"time_after_capture_raw: ";
+    //cout<<fs.count()<<endl;
+    cout<<"in ms: ";
+    cout<<d.count()<<endl;
+    // boost::chrono::nanoseconds ns = boost::chrono::high_resolution_clock::now() = start;
+    //auto val = ns.count()'
+    //cout<<"boost time: "<<val<<endl;
     // Teardown buffer and camera stream
     EVT_ReleaseFrameBuffer(&camera, &evtFrame);
     EVT_ReleaseFrameBuffer(&camera, &evtFrameConvert);
     
+
   }
 
 };

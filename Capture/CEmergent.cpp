@@ -26,6 +26,7 @@ typedef long clock_t
 #include <chrono>
 #include <unistd.h>
 #include <boost/python/numpy.hpp>
+#include <sstream>
 //try
 
 using namespace std;
@@ -480,8 +481,10 @@ public:
   void capture_raw(int height, int width, const char* format,
 		  const char* compression, const char* filename)
   {
-    configure_defaults(&camera);
+    //configure_defaults(&camera);
     int result;
+    FILE* pFile;
+    //ofstream file ("file.raw", ios::binary);
     typedef std::chrono::high_resolution_clock Time;
     typedef std::chrono::milliseconds ms;
     typedef std::chrono::duration<float> fsec;
@@ -566,14 +569,14 @@ public:
 
     // ---- Frame manipulation
 
-    unsigned char *frame_img_ptr = new unsigned char;
+    //unsigned char *frame_img_ptr = new unsigned char;
     int nelems = 4096*3072;
-    int *array2 = new int[nelems];
+    int8_t *array2 = new int8_t[nelems/4];
+    //frame_img_ptr = evtFrame.imagePtr;
     
-    frame_img_ptr = evtFrame.imagePtr;
-    cout << " ------ " << endl;
-    cout << frame_img_ptr[4000] << endl;
-    cout << " ------ " << endl;
+    //cout << " ------ " << endl;
+    //cout << frame_img_ptr[4000] << endl;
+    //cout << " ------ " << endl;
 
     /** Contents of evtFrame
     cout << "Size X: ";
@@ -585,15 +588,28 @@ public:
     cout << "Convert Bit Depth: ";
     cout << evtFrame.convertBitDepth << endl;
     **/
+    int cntr = -1;
+    for (int i = 0; i < nelems; i+=2) {
+      //array2[i] = frame_img_ptr[i];
+      //file.write(reinterpret_cast<const char *>(&evtFrame.imagePtr[i]), sizeof(evtFrame.imagePtr[i]));
+      if ((i / 4096) % 2 == 0){
+	array2[++cntr] = evtFrame.imagePtr[i];
+	}
+      //array2[i] = evtFrame.imagePtr[i];
+    }
+    unsigned long milliseconds_since_epoch =
+      chrono::duration_cast<std::chrono::milliseconds>
+      (chrono::system_clock::now().time_since_epoch()).count();
+    string str_ms = to_string(milliseconds_since_epoch)+".raw";
+    const char * fname = str_ms.c_str();
+    //char const* filename = str_ms.c_str();
 
-    //copy(frame_img_ptr, frame_img_ptr+nelems, array2);
-    
-    //for (int i = 0; i < nelems; i+=2) {
-    //  array2[i] = frame_img_ptr[i];
-    //}
+    pFile = fopen(fname, "wb");
+    fwrite(array2, sizeof(int8_t), nelems*sizeof(int8_t)/4, pFile);
+    fclose(pFile);
 
-    memcpy(array2, frame_img_ptr, sizeof(frame_img_ptr));
-    
+    //cout << "1000th: " << int(array2[1000]) << endl;
+    //fwrite(evtFrame.imagePtr, sizeof(int8_t), nelems*sizeof(int8_t), pFile);
     //for (int i = 0; i < nelems; i++) {
     //  cout << array2[i];
     //}
@@ -607,8 +623,8 @@ public:
     //cout << "Single dimensional array ::" << endl
     // << bp::extract<char const *>(bp::str(imgarr)) << endl;
     */
-    cout << "Printing 1000th element: ";
-    cout << array2[1000] << endl;
+    //cout << "Printing 1000th element: " << endl;
+    //cout << array2[0] << endl;
     // ----
 
     
@@ -617,9 +633,9 @@ public:
     auto time1 = Time::now();
     fsec fs = time1 - time0;
     ms d = std::chrono::duration_cast<ms>(fs);
-    cout<<"time_after_capture_raw: ";
+    //cout<<"time_after_capture_raw: ";
     //cout<<fs.count()<<endl;
-    cout<<"in ms: ";
+    //cout<<"in ms: ";
     cout<<d.count()<<endl;
     // boost::chrono::nanoseconds ns = boost::chrono::high_resolution_clock::now() = start;
     //auto val = ns.count()'

@@ -2,6 +2,8 @@ import re
 import time
 from datetime import datetime
 from CEmergent import HsCam
+import numpy as np
+import matplotlib.pyplot as plt
 
 SUCCESS = 0
 ERROR = 1
@@ -151,18 +153,20 @@ if __name__ == '__main__':
     ec.set_parameter('Height', h)
 
     ec.open_cam_stream()
+    ec.set_parameter('HDREnable', False)
+    #ec.set_parameter('SubSample', "SUBS_2x2")
+    ec.read_parameter('Exposure')
+    ec.set_parameter('Exposure', 2100)
+    ec.set_parameter('WB_Enable', False)
 
-    for i in range(10):
-        print time.time()
-        ec.read_parameter('Exposure')
-        ec.set_parameter('Exposure', 100 * i)
-
+    for i in range(60*17):
+        #ec.read_parameter('Exposure')
+        #ec.set_parameter('Exposure', 100 * i)
         ec.capture_raw(height=h,
                        width=w,
                        form="Mono8",
                        compression="RAW",
                        filename="test_%d.raw" % i)
-        time.sleep(2)
 
     ec.close_cam_stream()
     ec.release_camera()

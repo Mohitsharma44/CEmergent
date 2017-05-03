@@ -3,24 +3,24 @@
 
 CC = g++
 
-CFLAGS = -fPIC -c -Wall -m64
+CFLAGS = -fPIC -c -Wall -m64 -std=c++0x
 
 CUR_DIR=.
 DIR_OUT=./out
 
 # define any directories containing header files other than /usr/include
 #
-INCLUDES = -I/usr/include/python2.7 -I/opt/EVT/eSDK/include
+INCLUDES = -I/usr/include/python2.7 -I/opt/EVT/eSDK/include -I/usr/include/boost/include -I/usr/include/boost/lib
 
 # define library paths in addition to /usr/lib
 #   if I wanted to include libraries not in /usr/lib I'd specify
 #   their path using -Lpath, something like:
-LFLAGS = -L/opt/EVT/eSDK/lib/ -L/usr/lib -L/usr/lib/python2.7/config
+LFLAGS = -L/opt/EVT/eSDK/lib/ -L/usr/lib -L/usr/lib/python2.7/config -L/usr/include/boost/lib
 
 # define any libraries to link into executable:
 #   if I want to link in libraries (libx.so or libx.a) I use the -llibname 
 #   option, something like (this will link in libmylib.so and libm.so:
-LIBS = -lboost_python -lpython2.7 -lEmergentCamera -lEmergentGenICam -lEmergentGigEVision
+LIBS = -lboost_python -lboost_numpy -lpython2.7 -lEmergentCamera -lEmergentGenICam -lEmergentGigEVision
 
 TARGET = $(DIR_OUT)/CEmergent.o $(DIR_OUT)/CEmergent.so
 
@@ -39,4 +39,4 @@ copyfiles:
 	cp $(CUR_DIR)/*.py $(DIR_OUT)/
 clean:
 	$(RM) $(TARGET)
-	$(RM) $(DIR_OUT)/*.conf
+	$(RM) $(DIR_OUT)/*.*

@@ -21,6 +21,6 @@ make copyfiles
 
 cd ./out
 
-python emergent.py
+#python emergent.py
 
 #xdg-open test.tif

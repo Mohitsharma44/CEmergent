@@ -28,7 +28,10 @@ MAC:
 `brew install boost`
 
 WINDOWS:
-- *Refer `www.boost.org/doc/libs/1_58_0/more/getting_started/windows.html` *
+- *Refer `www.boost.org/doc/libs/1_58_0/more/getting_started/windows.html`*
+
+## Implemented Functions:
+Refer [help_file.md](https://github.com/Mohitsharma44/CEmergent/blob/master/help_file.md)
 
 ## Developer Notes:
 *Instructions for compiling and creating shared object*

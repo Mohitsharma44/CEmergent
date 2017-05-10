@@ -47,7 +47,7 @@ Arguments: `string parameter_name`
 
 **`OffsetY`**: The vertical offset of the ROI
 
-**`Exposure`**: Camera Exposure in microseconds
+**`Exposure`**: Camera Exposure in microseconds (Max is 33188)
 
 **`FrameRate`**: Frame Rate of the camera in fps
 

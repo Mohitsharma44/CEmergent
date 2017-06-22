@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 import re
-from CEmergent import HsCam
 import numpy as np
+from CEmergent import HsCam
 import matplotlib.pyplot as plt
 
 SUCCESS = 0

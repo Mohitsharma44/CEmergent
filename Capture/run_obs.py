@@ -31,10 +31,13 @@ def do_capture6(ec):
     for ii in range(6):
         t0 = time.time()
         ec.capture_stack(nimg, base.format(cnt[0]), hgt, wid)
-        time.sleep(10. - (time.time() - t0))
 
         # -- update counter
         cnt[0] += 1
+
+        # -- capture next stack 10s after the beginning of the current stack
+        time.sleep(10. - (time.time() - t0))
+
     
     return
 
@@ -98,16 +101,15 @@ if __name__ == "__main__":
     ec.set_parameter('Exposure', params[4])
 
 
-    # -- set up the scheduler
-    sec   = np.arange(21 * 3600, (21 + 9) * 3600, 60)
-#    sec   = np.arange(14 * 3600 + 45 * 60, 14 * 3600 + 45 * 60 + 100, 10)
-    times = ["{0:02}:{1:02}".format(i, j) for i, j in
-             zip(sec // 3600 % 24, sec % 3600 // 60)]
-    dum   = [schedule.every().day.at(i).do(do_capture6) for i in times]
-
-
     # -- start image acquisition
     try:
+        # -- set up the scheduler
+        sec   = np.arange(21 * 3600, (21 + 9) * 3600, 60)
+        times = ["{0:02}:{1:02}".format(i, j) for i, j in
+                 zip(sec // 3600 % 24, sec % 3600 // 60)]
+        dum   = [schedule.every().day.at(i).do(do_capture6, ec) for i in
+                 times]
+
         # -- run scheduler
         while True:
             schedule.run_pending()

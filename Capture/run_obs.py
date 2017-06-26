@@ -67,10 +67,10 @@ def pan_to_position(pan, tilt):
 if __name__ == "__main__":
 
     # -- utilities
-    cnt    = [0]
+    cnt    = [3240]
     pt     = (95, -255)
     nimg   = 20
-    tint   = 30 # 33188 # ms
+    tint   = 33188 # ms
     params = [nimg, "stack_bb_{0:07}.raw", 0, 0, tint]
 
 
